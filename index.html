@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>凯同雅说</title>
+        <script src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+        <script src="./kevin-web.js"></script>
+    </head>
+    <body>
+        <h1>凯同雅说</h1>
+        <div>
+            <textarea
+                id="original"
+                cols="30"
+                rows="10"
+                placeholder="原文"
+            ></textarea>
+        </div>
+        <div>
+            <button id="o2e">将上方输出到下方</button>
+            <button id="e2o">从下方读取至上方</button>
+        </div>
+        <div>
+            <textarea
+                id="encodedString"
+                cols="30"
+                rows="10"
+                placeholder="加密后文字"
+            ></textarea>
+        </div>
+        <h4>Console</h4>
+        <p id="output"></p>
+
+        <script>
+            Kevin.use("Ayaa");
+
+            const original = document.querySelector("#original");
+            const encoded = document.querySelector("#encodedString");
+            const o2e = document.querySelector("#o2e");
+            const e2o = document.querySelector("#e2o");
+            const output = document.querySelector("#output");
+
+            output.setText = text => (output.innerText = text || "");
+            output.success = () => output.setText("success");
+
+            o2e.addEventListener("click", () => {
+                output.setText();
+                if (!original.value) return output.setText("上方无字");
+                try {
+                    encoded.value = Kevin.encode(original.value);
+                    output.success();
+                } catch (error) {
+                    output.setText(error);
+                }
+                output.innerText = "success";
+            });
+
+            e2o.addEventListener("click", () => {
+                output.setText();
+                if (!encoded.value) return output.setText("下方无字");
+                try {
+                    original.value = Kevin.decode(encoded.value);
+                    output.success();
+                } catch (error) {
+                    output.setText(error);
+                }
+            });
+        </script>
+    </body>
+</html>
