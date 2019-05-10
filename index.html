@@ -34,8 +34,6 @@
         <p id="output"></p>
 
         <script>
-            Kevin.use("ana");
-
             const original = document.querySelector("#original");
             const encoded = document.querySelector("#encodedString");
             const o2e = document.querySelector("#o2e");
@@ -44,6 +42,12 @@
 
             output.setText = text => (output.innerText = text || "");
             output.success = () => output.setText("success");
+
+            try {
+                Kevin.use("ana");
+            } catch (error) {
+                output.setText(error);
+            }
 
             o2e.addEventListener("click", () => {
                 output.setText();
