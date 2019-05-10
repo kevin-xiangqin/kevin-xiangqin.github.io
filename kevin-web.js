@@ -20,7 +20,7 @@
         '稳', '重', '点', '不', '要', '扰', '在', '知', '乎', '谈', '人', '生', '理', '想', '最', '什',
         '么', '都', '有', '没', '彼', '此', '已', '经', '成', '名', '多', '年', '，', '需', '宣', '传',
         '窝', '门', '凌', '厚', '忝', '侠', '递', '锅', '郭', '果', '敢', '赶', '阿', '地', '得', '涂',
-        '拟', '昵', '霓', '虹', '并', '日', '本', '涅', '竟', '究', '想', '夢', '倒', '顛', '離', '遠',
+        '拟', '昵', '霓', '虹', '并', '日', '本', '涅', '竟', '究', '乡', '夢', '倒', '顛', '離', '遠',
         '呗', '吧', '巴', '留', '流', '青', '蓝', '世', '难', '道', '。', '写', '盡', '死', '老', '至'
     ];
 
@@ -97,18 +97,18 @@
                 mode.length === defalutTudouChar.length &&
                 mode.every(s => typeof s === "string" && s.length === 1)
             ) {
-                const set = new Set(tudouChar);
+                const set = new Set(mode);
                 if (0x80 > set.size) {
                     console.log(`tudouChar数组长度`, 0x80);
-                    console.log(`set长度:`, set.size);
-                    for (const i in tudouChar) {
+                    console.log(`传入的数组转set后长度:`, set.size);
+                    for (const i in mode) {
                         if (
-                            tudouChar.indexOf(tudouChar[i]) !==
-                            tudouChar.lastIndexOf(tudouChar[i])
+                            mode.indexOf(mode[i]) !==
+                            mode.lastIndexOf(mode[i])
                         ) {
                             console.log("下标为：" + i);
                             console.log(
-                                "数组中有重复元素：" + tudouChar[i]
+                                "数组中有重复元素：" + mode[i]
                             );
                         }
                     }
