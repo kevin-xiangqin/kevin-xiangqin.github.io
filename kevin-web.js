@@ -1,4 +1,7 @@
 (function (global) {
+    const crypto = require('crypto')
+    const Buffer = require('buffer').Buffer
+    const iconvlite = require('iconv-lite')
     const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
     const randomItemFromArray = (arr) => arr[randomNumber(0, arr.length - 1)];
     const defalutTudouChar = [
@@ -48,27 +51,28 @@
             return trimedBuffer;
         }
 
-        static encode(originalString) {
-            const originalBuffer = aesjs.utils.utf8.toBytes(originalString);
-            // 补padding
-            const buf = aesjs.padding.pkcs7.pad(originalBuffer);
-            const aesCbc = new aesjs.ModeOfOperation.cbc(
-                Kevin.key,
-                Kevin.iv
-            );
-            const encodeBuffer = aesCbc.encrypt(buf);
+        static encode(originalString, hasPrefix = true) {
+            // 按小端解
+            const originalBuffer = iconvlite.encode(originalString, 'UTF-16LE');
+            // use aes-256-cbc
+            const cipher = crypto.createCipheriv('aes-256-cbc', Kevin.key, Kevin.vector);
+            const encodeBuffer = Buffer.concat([
+                cipher.update(originalBuffer),
+                cipher.final()
+            ]);
 
-            let tudouString = "";
-            for (let i = 0; i < encodeBuffer.length; i++) {
-                const byte = encodeBuffer[i];
+            const tudouString = encodeBuffer.reduce((result, buffer) => {
+                const byte = buffer;
                 if (byte >= 0x80) {
-                    tudouString += randomItemFromArray(Kevin.tudouKeyWord);
-                    tudouString += tudouChar[byte ^ 0x80];
+                    result += randomItemFromArray(Kevin.tudouKeyWord);
+                    result += tudouChar[byte ^ 0x80];
                 } else {
-                    tudouString += tudouChar[byte];
+                    result += tudouChar[byte];
                 }
-            }
-            return prefix + tudouString;
+                return result;
+            }, '');
+
+            return hasPrefix ? `${prefix}${tudouString}` : tudouString;
         }
 
         static decode(encodeText) {
@@ -76,15 +80,13 @@
                 ? encodeText.replace(prefix, "")
                 : encodeText;
             const encodeArray = Kevin.toBytes(encodeText);
-            const aesCbc = new aesjs.ModeOfOperation.cbc(
-                Kevin.key,
-                Kevin.iv
-            );
-            const decodeBuff = aesCbc.decrypt(encodeArray);
-
-            return aesjs.utils.utf8.fromBytes(
-                aesjs.padding.pkcs7.strip(decodeBuff)
-            );
+            const decipher = crypto.createDecipheriv('aes-256-cbc', Kevin.key, Kevin.vector);
+            const encodeBuffer = Buffer.from(encodeArray);
+            const decodeBuff = Buffer.concat([
+                decipher.update(encodeBuffer),
+                decipher.final()
+            ]);
+            return iconvlite.decode(decodeBuff, 'UTF-16LE');
         }
 
         static use(mode) {
@@ -136,8 +138,8 @@
         }
     }
 
-    Kevin.key = aesjs.utils.utf8.toBytes('XDXDtudou@KeyFansClub^_^Encode!!');
-    Kevin.vector = aesjs.utils.utf8.toBytes('Potato@Key@_@=_=');
+    Kevin.key = 'XDXDtudou@KeyFansClub^_^Encode!!';
+    Kevin.vector = 'Potato@Key@_@=_=';
     Kevin.tudouKeyWord = ['放', '敵', '霸', '之', '刘', '凯', '收', '馬', '虎', '兔', '龍', '周'];
 
     // export
