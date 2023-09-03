@@ -30,8 +30,22 @@
                 placeholder="加密后文字"
             ></textarea>
         </div>
-        <h4>Console</h4>
-        <p id="output"></p>
+
+        <section>
+            <div>
+                <input id="kevinMode" type="radio" label="sweetMode" />
+                <span>凯文语录</span>
+                <input id="buddaMode" type="radio" label="defaultMode" />
+                <span>与佛论禅</span>
+                <p>
+                    <span>盐值</span>
+                    <input type="text" placeholder="选填" id="salt">
+                </p>
+                <hr>
+            </div>
+            <h4>Console</h4>
+            <p id="output"></p>
+        </section>
 
         <script>
             const original = document.querySelector("#original");
@@ -39,21 +53,86 @@
             const o2e = document.querySelector("#o2e");
             const e2o = document.querySelector("#e2o");
             const output = document.querySelector("#output");
+            const salt = document.querySelector("#salt");
+            const kevinModeRadio = document.querySelector("#kevinMode");
+            const buddaModeRadio = document.querySelector("#buddaMode");
+
+            const defaultMode = Mode.KevinTalk;
+            // 因为radio点下去之后dom的checked属性立刻会变，想获取老数据的时候就不行了，所以用symbol存一下
+            const radioSymbol = Symbol("用于存放checked状态");
+            const reactive = {
+                // type: Mode
+                [radioSymbol]: defaultMode
+            }
+            Object.defineProperties(reactive, {
+                mode: {
+                    get() {
+                        return reactive[radioSymbol];
+                    },
+                    set(value) {
+                        const oldValue = reactive.mode;
+                        if (value === Mode.KevinTalk) {
+                            kevinModeRadio.checked = true;
+                            buddaModeRadio.checked = false;
+                            Kevin.use(Mode.KevinTalk);
+                        } else if (value === Mode.BuddaTalk) {
+                            kevinModeRadio.checked = false;
+                            buddaModeRadio.checked = true;
+                            Kevin.use(Mode.BuddaTalk);
+                        } else {
+                            console.error("invalid mode: " + value);
+                            reactive.mode = defaultMode;
+                            return
+                        }
+                        reactive[radioSymbol] = value;
+                        // clear text when mode changed
+                        if (oldValue !== value) {
+                            output.setText();
+                            encoded.value = "";
+                            original.value = "";
+                        }
+                    }
+                },
+                salt: {
+                    get() {
+                        return salt.value;
+                    },
+                    set(value) {
+                        salt.value = value;
+                    }
+                }
+            })
 
             output.setText = text => (output.innerText = text || "");
             output.success = () => output.setText("success");
 
             try {
-                Kevin.use("ana");
+                reactive.mode = defaultMode;
+                reactive.salt = "";
             } catch (error) {
                 output.setText(error);
             }
+
+            kevinModeRadio.addEventListener("change", () => {
+                reactive.mode = Mode.KevinTalk;
+            });
+
+            buddaModeRadio.addEventListener("change", () => {
+                reactive.mode = Mode.BuddaTalk;
+            });
+
+            salt.addEventListener("input", e => {
+                const text = e.target.value;
+                if (text !== reactive.salt) {
+                    reactive.salt = e.target.value;
+                }
+            });
 
             o2e.addEventListener("click", () => {
                 output.setText();
                 if (!original.value) return output.setText("上方无字");
                 try {
-                    encoded.value = Kevin.encode(original.value);
+                    encoded.value = Kevin.encode(original.value, reactive.salt);
                     output.success();
                 } catch (error) {
                     output.setText(error);
@@ -64,12 +143,13 @@
                 output.setText();
                 if (!encoded.value) return output.setText("下方无字");
                 try {
-                    original.value = Kevin.decode(encoded.value);
+                    original.value = Kevin.decode(encoded.value, reactive.salt);
                     output.success();
                 } catch (error) {
                     output.setText(error);
                 }
             });
+            
         </script>
     </body>
 </html>
