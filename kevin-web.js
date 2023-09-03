@@ -47,10 +47,10 @@
 
     // export item
     class Kevin {
-        static { this.key = 'XDXDtudou@KeyFansClub^_^Encode!!'; }
-        static { this.vector = 'Potato@Key@_@=_='; }
+        static key = 'XDXDtudou@KeyFansClub^_^Encode!!';
+        static vector = 'Potato@Key@_@=_=';
         // 取值分隔符，算得上高频字
-        static { this.tudouKeyWord = defaultTudouKeyWord; }
+        static tudouKeyWord = defaultTudouKeyWord;
         static toBytes(tudouString) {
             const tudouKeyWordList = Kevin.tudouKeyWord;
             const tudouCharList = tudouChar;
